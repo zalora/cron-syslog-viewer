@@ -9,17 +9,17 @@ import           Data.Time
 import           System.Locale
 
 
-data Run = Run (UTCTime, UTCTime) String
+data Run = Run (UTCTime, UTCTime) String String
   deriving (Show, Eq, Ord)
 
 ytics :: [(Integer, Run)] -> String
 ytics runs = intercalate ", " $ for runs $
-  \ (ix, Run _ name) ->
-    [i|"#{name}" #{ix}|]
+  \ (ix, Run _ host name) ->
+    [i|"#{name} - #{host}" #{ix}|]
 
 objects :: [(Integer, Run)] -> String
 objects runs = unlines $ for runs $
- \ (fromIntegral -> (ix :: Double), Run (start, end) _name) ->
+ \ (fromIntegral -> (ix :: Double), Run (start, end) _host _name) ->
     -- set object 1 rectangle from "2015-01-05_00:00:00", 2.6 to "2015-01-05_04:03:00", 3.4 fillcolor rgb "#8888ff" fillstyle solid 0.8
     [i|set object #{show ix} rectangle from #{showTime start}, #{ix - 0.5} to #{showTime end}, #{ix + 0.5} fillcolor rgb "#8888ff" fillstyle solid 0.8|]
 

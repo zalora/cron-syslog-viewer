@@ -32,19 +32,19 @@ data Line
 data CronMarker = Start | End
   deriving (Show, Eq)
 
-data Job = Job String Integer
+data Job = Job String String Integer
   deriving (Show, Eq, Ord)
 
 parseLines :: String -> [Line]
 parseLines = catMaybes . map parseLine . lines
 
 parseLine :: String -> Maybe Line
-parseLine (words -> (month : day : time : _host : job : _logLevel : _ : cronMarker : command)) = do
+parseLine (words -> (month : day : time : host : job : _logLevel : _ : cronMarker : command)) = do
   marker <- case cronMarker of
     "CMD" -> Just Start
     "END" -> Just End
     _ -> Nothing
-  Just $ Line marker (parseLogTime (unwords [month, day, time])) (Job (snip (unwords command)) (parsePID job))
+  Just $ Line marker (parseLogTime (unwords [month, day, time])) (Job host (snip (unwords command)) (parsePID job))
 parseLine _ = Nothing
 
 snip :: String -> String
@@ -73,15 +73,15 @@ aggregateRuns = sort . snd . List.foldl' inner (empty, [])
   where
     inner :: (Map Job UTCTime, [Run]) -> Line -> (Map Job UTCTime, [Run])
     inner (starts, runs) (Line Start time job) = (insert job time starts, runs)
-    inner (starts, runs) (Line End end (Job name pid)) =
-      let newRuns = case Map.lookup (Job name (succ pid)) starts of
+    inner (starts, runs) (Line End end (Job host name pid)) =
+      let newRuns = case Map.lookup (Job host name (succ pid)) starts of
             Nothing -> runs
-            Just start -> Run (start, end) name : runs
-      in (delete (Job name (succ pid)) starts, newRuns)
+            Just start -> Run (start, end) host name : runs
+      in (delete (Job host name (succ pid)) starts, newRuns)
 
 
 filterRuns :: [Run] -> [Run]
-filterRuns = filter $ \ (Run (start, end) name) ->
+filterRuns = filter $ \ (Run (start, end) _host name) ->
   diffUTCTime end start > 1 &&
   not ("cron-msp" `isInfixOf` name)
 
@@ -95,7 +95,7 @@ printGnuplot (zip [1 :: Integer ..] -> runs) = unindent [i|
   set xdata time
   set timefmt "%Y-%m-%d_%H:%M:%S"
 
-  set xrange [#{showTime (minimum (for runs (\ (_, Run (start, _) _) -> start)))}:#{showTime (maximum (for runs (\ (_, Run (_, end) _) -> end)))}]
+  set xrange [#{showTime (minimum (for runs (\ (_, Run (start, _) _ _) -> start)))}:#{showTime (maximum (for runs (\ (_, Run (_, end) _ _) -> end)))}]
   set yrange [0.4:#{fromIntegral (maximum (for runs (\ (ix, _) -> ix))) + 0.6 :: Double}]
   set xlabel "time"
   set ylabel ""

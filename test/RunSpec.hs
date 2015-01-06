@@ -35,7 +35,7 @@ spec = do
   describe "filterRuns" $ do
     it "removes runs that start and end with the same time" $ do
       filterRuns expectedRuns `shouldBe`
-        Run (parseLogTime "Jan  5 07:17:04", parseLogTime "Jan  5 07:30:50") "huhu" :
+        Run (parseLogTime "Jan  5 07:17:04", parseLogTime "Jan  5 07:30:50") "ip-111-22-3-44" "huhu" :
         []
 
   describe "printGnuplot" $ do
@@ -47,20 +47,20 @@ spec = do
 
 expectedRuns :: [Run]
 expectedRuns =
-  Run (parseLogTime "Jan  5 07:17:01", parseLogTime "Jan  5 07:17:01") "foo bar" :
-  Run (parseLogTime "Jan  5 07:17:04", parseLogTime "Jan  5 07:30:50") "huhu" :
-  Run (parseLogTime "Jan  5 07:20:01", parseLogTime "Jan  5 07:20:02") "test bumm" :
+  Run (parseLogTime "Jan  5 07:17:01", parseLogTime "Jan  5 07:17:01") "ip-111-22-3-44" "foo bar" :
+  Run (parseLogTime "Jan  5 07:17:04", parseLogTime "Jan  5 07:30:50") "ip-111-22-3-44" "huhu" :
+  Run (parseLogTime "Jan  5 07:20:01", parseLogTime "Jan  5 07:20:02") "ip-111-22-3-44" "test bumm" :
   []
 
 
 expectedLines :: [Line]
 expectedLines =
-  Line Start (parseLogTime "Jan  5 07:17:01") (Job "foo bar" 17399) :
-  Line End   (parseLogTime "Jan  5 07:17:01") (Job "foo bar" 17398) :
-  Line Start (parseLogTime "Jan  5 07:17:04") (Job "huhu" 17397) :
-  Line Start (parseLogTime "Jan  5 07:20:01") (Job "test bumm" 17417) :
-  Line End   (parseLogTime "Jan  5 07:20:02") (Job "test bumm" 17416) :
-  Line End   (parseLogTime "Jan  5 07:30:50") (Job "huhu" 17396) :
+  Line Start (parseLogTime "Jan  5 07:17:01") (Job "ip-111-22-3-44" "foo bar" 17399) :
+  Line End   (parseLogTime "Jan  5 07:17:01") (Job "ip-111-22-3-44" "foo bar" 17398) :
+  Line Start (parseLogTime "Jan  5 07:17:04") (Job "ip-111-22-3-44" "huhu" 17397) :
+  Line Start (parseLogTime "Jan  5 07:20:01") (Job "ip-111-22-3-44" "test bumm" 17417) :
+  Line End   (parseLogTime "Jan  5 07:20:02") (Job "ip-111-22-3-44" "test bumm" 17416) :
+  Line End   (parseLogTime "Jan  5 07:30:50") (Job "ip-111-22-3-44" "huhu" 17396) :
   []
 
 logLines :: String
