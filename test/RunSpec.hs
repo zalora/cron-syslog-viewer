@@ -55,12 +55,12 @@ expectedRuns =
 
 expectedLines :: [Line]
 expectedLines =
-  Line Start (parseLogTime "Jan  5 07:17:01") (Job "ip-111-22-3-44" "foo bar" 17399) :
-  Line End   (parseLogTime "Jan  5 07:17:01") (Job "ip-111-22-3-44" "foo bar" 17398) :
-  Line Start (parseLogTime "Jan  5 07:17:04") (Job "ip-111-22-3-44" "huhu" 17397) :
-  Line Start (parseLogTime "Jan  5 07:20:01") (Job "ip-111-22-3-44" "test bumm" 17417) :
-  Line End   (parseLogTime "Jan  5 07:20:02") (Job "ip-111-22-3-44" "test bumm" 17416) :
-  Line End   (parseLogTime "Jan  5 07:30:50") (Job "ip-111-22-3-44" "huhu" 17396) :
+  Line (parseLogTime "Jan  5 07:17:01") Start (Job "ip-111-22-3-44" "foo bar" 17399) :
+  Line (parseLogTime "Jan  5 07:17:01") End   (Job "ip-111-22-3-44" "foo bar" 17398) :
+  Line (parseLogTime "Jan  5 07:17:04") Start (Job "ip-111-22-3-44" "huhu" 17397) :
+  Line (parseLogTime "Jan  5 07:20:01") Start (Job "ip-111-22-3-44" "test bumm" 17417) :
+  Line (parseLogTime "Jan  5 07:20:02") End   (Job "ip-111-22-3-44" "test bumm" 17416) :
+  Line (parseLogTime "Jan  5 07:30:50") End   (Job "ip-111-22-3-44" "huhu" 17396) :
   []
 
 logLines :: String

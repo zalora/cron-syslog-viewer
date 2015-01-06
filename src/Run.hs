@@ -20,17 +20,18 @@ import           Gnuplot
 run :: String -> String
 run =
   parseLines >>>
+  sort >>>
   aggregateRuns >>>
   filterRuns >>>
   printGnuplot
 
 
 data Line
-  = Line CronMarker UTCTime Job
- deriving (Show, Eq)
+  = Line UTCTime CronMarker Job
+ deriving (Show, Eq, Ord)
 
 data CronMarker = Start | End
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 data Job = Job String String Integer
   deriving (Show, Eq, Ord)
@@ -44,7 +45,7 @@ parseLine (words -> (month : day : time : host : job : _logLevel : _ : cronMarke
     "CMD" -> Just Start
     "END" -> Just End
     _ -> Nothing
-  Just $ Line marker (parseLogTime (unwords [month, day, time])) (Job host (snip (unwords command)) (parsePID job))
+  Just $ Line (parseLogTime (unwords [month, day, time])) marker (Job host (snip (unwords command)) (parsePID job))
 parseLine _ = Nothing
 
 snip :: String -> String
@@ -72,8 +73,8 @@ aggregateRuns :: [Line] -> [Run]
 aggregateRuns = sort . snd . List.foldl' inner (empty, [])
   where
     inner :: (Map Job UTCTime, [Run]) -> Line -> (Map Job UTCTime, [Run])
-    inner (starts, runs) (Line Start time job) = (insert job time starts, runs)
-    inner (starts, runs) (Line End end (Job host name pid)) =
+    inner (starts, runs) (Line time Start job) = (insert job time starts, runs)
+    inner (starts, runs) (Line end End (Job host name pid)) =
       let newRuns = case Map.lookup (Job host name (succ pid)) starts of
             Nothing -> runs
             Just start -> Run (start, end) host name : runs
