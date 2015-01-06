@@ -1,0 +1,77 @@
+{-# LANGUAGE QuasiQuotes #-}
+
+module RunSpec where
+
+
+import           Data.String.Interpolate
+import           Data.String.Interpolate.Util
+import           Data.Time
+import           System.Exit
+import           System.IO
+import           System.IO.Temp
+import           System.Locale
+import           System.Process
+import           Test.Hspec
+
+import           Run
+
+
+spec :: Spec
+spec = do
+  describe "parseLogTime" $ do
+    it "parses the time" $ do
+      let s = "Jan 5 07:17:04"
+      formatTime defaultTimeLocale "%F_%T" (parseLogTime s) `shouldBe` "1970-01-05_07:17:04"
+
+  describe "parseLines" $ do
+    it "parses multiple syslog lines" $ do
+      parseLines logLines `shouldBe` expectedLines
+
+  describe "aggregateRuns" $ do
+    it "aggregates runs" $ do
+      aggregateRuns expectedLines `shouldBe` expectedRuns
+
+  describe "printGnuplot" $ do
+    it "can be parsed by gnuplot" $ withSystemTempFile "cron-syslog-viewer-test" $ \ file handle -> do
+      hPutStrLn handle (printGnuplot expectedRuns)
+      hClose handle
+      system ("gnuplot " ++ file) `shouldReturn` ExitSuccess
+
+
+expectedRuns :: [Run]
+expectedRuns =
+  Run (parseLogTime "Jan  5 07:17:01", parseLogTime "Jan  5 07:17:01") "CRON" :
+  Run (parseLogTime "Jan  5 07:17:04", parseLogTime "Jan  5 07:30:50") "interesting" :
+  Run (parseLogTime "Jan  5 07:20:01", parseLogTime "Jan  5 07:20:01") "CRON" :
+  []
+
+
+expectedLines :: [Line]
+expectedLines =
+  Line Start (parseLogTime "Jan  5 07:17:01") (Job "CRON" 17399) :
+  Line End   (parseLogTime "Jan  5 07:17:01") (Job "CRON" 17398) :
+  Line Start (parseLogTime "Jan  5 07:17:04") (Job "interesting" 17397) :
+  Line Start (parseLogTime "Jan  5 07:20:01") (Job "CRON" 17417) :
+  Line End   (parseLogTime "Jan  5 07:20:01") (Job "CRON" 17416) :
+  Line End   (parseLogTime "Jan  5 07:30:50") (Job "interesting" 17396) :
+  []
+
+logLines :: String
+logLines = unindent [i|
+  Jan  5 07:17:01 ip-111-22-3-44 CRON[17399]: info: (root) CMD (   cd / && run-parts --report /etc/cron.hourly)
+  Jan  5 07:17:01 ip-111-22-3-44 CRON[17398]: info: (root) END (   cd / && run-parts --report /etc/cron.hourly)
+  Jan  5 07:17:04 ip-111-22-3-44 interesting[17397]: info: (root) CMD (   cd / && run-parts --report /etc/cron.hourly)
+  Jan  5 07:18:06 ip-111-22-3-44 dhclient: info: DHCPREQUEST of [snip]
+  Jan  5 07:18:06 ip-111-22-3-44 dhclient: info: DHCPACK of [snip]
+  Jan  5 07:18:06 ip-111-22-3-44 dhclient: info: bound to [snip]
+  Jan  5 07:20:01 ip-111-22-3-44 CRON[17417]: info: (smmsp) CMD (test -x /etc/init.d/sendmail && /usr/share/sendmail/sendmail cron-msp)
+  Jan  5 07:20:01 ip-111-22-3-44 CRON[17416]: info: (smmsp) END (test -x /etc/init.d/sendmail && /usr/share/sendmail/sendmail cron-msp)
+  Jan  5 07:30:24 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MTA-v4: load average: 12
+  Jan  5 07:30:24 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MSP-v4: load average: 12
+  Jan  5 07:30:39 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MTA-v4: load average: 16
+  Jan  5 07:30:39 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MSP-v4: load average: 16
+  Jan  5 07:30:50 ip-111-22-3-44 interesting[17396]: info: (root) END (   cd / && run-parts --report /etc/cron.hourly)
+  Jan  5 07:30:54 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MTA-v4: load average: 19
+  Jan  5 07:30:54 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MSP-v4: load average: 19
+  Jan  5 07:31:09 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MTA-v4: load average: 21
+ |]
