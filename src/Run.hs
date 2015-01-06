@@ -73,7 +73,7 @@ aggregateRuns = sort . snd . List.foldl' inner (empty, [])
 
 
 filterRuns :: [Run] -> [Run]
-filterRuns = filter (\ (Run (start, end) _) -> start /= end)
+filterRuns = filter (\ (Run (start, end) _) -> diffUTCTime end start > 1)
 
 
 printGnuplot :: [Run] -> String
