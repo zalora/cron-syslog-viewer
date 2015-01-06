@@ -4,9 +4,8 @@ module Run where
 
 
 import           Control.Arrow
-import           Data.List                    as List (foldl', 
-                                                       sort)
-import           Data.Map                     as Map hiding (map)
+import           Data.List                    as List (foldl', sort)
+import           Data.Map                     as Map hiding (filter, map)
 import           Data.Maybe
 import           Data.String.Interpolate
 import           Data.String.Interpolate.Util
@@ -21,6 +20,7 @@ run :: String -> String
 run =
   parseLines >>>
   aggregateRuns >>>
+  filterRuns >>>
   printGnuplot
 
 
@@ -70,6 +70,10 @@ aggregateRuns = sort . snd . List.foldl' inner (empty, [])
             Nothing -> runs
             Just start -> Run (start, end) name : runs
       in (delete (Job name (succ pid)) starts, newRuns)
+
+
+filterRuns :: [Run] -> [Run]
+filterRuns = filter (\ (Run (start, end) _) -> start /= end)
 
 
 printGnuplot :: [Run] -> String

@@ -13,6 +13,7 @@ import           System.Locale
 import           System.Process
 import           Test.Hspec
 
+import           Gnuplot
 import           Run
 
 
@@ -30,6 +31,12 @@ spec = do
   describe "aggregateRuns" $ do
     it "aggregates runs" $ do
       aggregateRuns expectedLines `shouldBe` expectedRuns
+
+  describe "filterRuns" $ do
+    it "removes runs that start and end with the same time" $ do
+      filterRuns expectedRuns `shouldBe`
+        Run (parseLogTime "Jan  5 07:17:04", parseLogTime "Jan  5 07:30:50") "interesting" :
+        []
 
   describe "printGnuplot" $ do
     it "can be parsed by gnuplot" $ withSystemTempFile "cron-syslog-viewer-test" $ \ file handle -> do
