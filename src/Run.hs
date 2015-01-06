@@ -84,14 +84,14 @@ aggregateRuns = sort . snd . List.foldl' inner (empty, [])
 filterRuns :: [Run] -> [Run]
 filterRuns = filter $ \ (Run (start, end) _host name) ->
   diffUTCTime end start > 1 &&
-  not ("cron-msp" `isInfixOf` name)
+  not (any (`isInfixOf` name) ["cron-msp", "/usr/sbin/anacron"])
 
 
 printGnuplot :: [Run] -> String
 printGnuplot (zip [1 :: Integer ..] -> runs) = unindent [i|
 
   set term png size 1600,900
-  set output "test.png"
+  set output "cronjob_times.png"
 
   set xdata time
   set timefmt "%Y-%m-%d_%H:%M:%S"
