@@ -4,7 +4,8 @@ module Run where
 
 
 import           Control.Arrow
-import           Data.List                    as List (foldl', sort)
+import           Data.List                    as List (foldl', isPrefixOf,
+                                                       isInfixOf, sort)
 import           Data.Map                     as Map hiding (filter, map)
 import           Data.Maybe
 import           Data.String.Interpolate
@@ -38,13 +39,20 @@ parseLines :: String -> [Line]
 parseLines = catMaybes . map parseLine . lines
 
 parseLine :: String -> Maybe Line
-parseLine (words -> (month : day : time : _host : job : _logLevel : _ : cronMarker : _)) = do
+parseLine (words -> (month : day : time : _host : job : _logLevel : _ : cronMarker : command)) = do
   marker <- case cronMarker of
     "CMD" -> Just Start
     "END" -> Just End
     _ -> Nothing
-  Just $ Line marker (parseLogTime (unwords [month, day, time])) (parseJob job)
+  Just $ Line marker (parseLogTime (unwords [month, day, time])) (Job (snip (unwords command)) (parsePID job))
 parseLine _ = Nothing
+
+snip :: String -> String
+snip s = if "2>" `isPrefixOf` s
+  then ""
+  else case s of
+    (a : r) -> a : snip r
+    "" -> ""
 
 -- years are not available, assuming 1970
 parseLogTime :: String -> UTCTime
@@ -52,8 +60,8 @@ parseLogTime s =
   fromMaybe (error ("cannot parse: " ++ s)) $
   parseTime defaultTimeLocale "%b %e %T" s
 
-parseJob :: String -> Job
-parseJob s = Job (takeWhile (/= '[') s) $ case dropWhile (/= '[') s of
+parsePID :: String -> Integer
+parsePID s = case dropWhile (/= '[') s of
   ('[' : rest) -> readNote err $ takeWhile (/= ']') rest
   _ -> error err
  where
@@ -73,13 +81,15 @@ aggregateRuns = sort . snd . List.foldl' inner (empty, [])
 
 
 filterRuns :: [Run] -> [Run]
-filterRuns = filter (\ (Run (start, end) _) -> diffUTCTime end start > 1)
+filterRuns = filter $ \ (Run (start, end) name) ->
+  diffUTCTime end start > 1 &&
+  not ("cron-msp" `isInfixOf` name)
 
 
 printGnuplot :: [Run] -> String
 printGnuplot (zip [1 :: Integer ..] -> runs) = unindent [i|
 
-  set term png
+  set term png size 1600,900
   set output "test.png"
 
   set xdata time

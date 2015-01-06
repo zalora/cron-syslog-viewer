@@ -35,7 +35,7 @@ spec = do
   describe "filterRuns" $ do
     it "removes runs that start and end with the same time" $ do
       filterRuns expectedRuns `shouldBe`
-        Run (parseLogTime "Jan  5 07:17:04", parseLogTime "Jan  5 07:30:50") "interesting" :
+        Run (parseLogTime "Jan  5 07:17:04", parseLogTime "Jan  5 07:30:50") "huhu" :
         []
 
   describe "printGnuplot" $ do
@@ -47,37 +47,37 @@ spec = do
 
 expectedRuns :: [Run]
 expectedRuns =
-  Run (parseLogTime "Jan  5 07:17:01", parseLogTime "Jan  5 07:17:01") "CRON" :
-  Run (parseLogTime "Jan  5 07:17:04", parseLogTime "Jan  5 07:30:50") "interesting" :
-  Run (parseLogTime "Jan  5 07:20:01", parseLogTime "Jan  5 07:20:02") "CRON" :
+  Run (parseLogTime "Jan  5 07:17:01", parseLogTime "Jan  5 07:17:01") "foo bar" :
+  Run (parseLogTime "Jan  5 07:17:04", parseLogTime "Jan  5 07:30:50") "huhu" :
+  Run (parseLogTime "Jan  5 07:20:01", parseLogTime "Jan  5 07:20:02") "test bumm" :
   []
 
 
 expectedLines :: [Line]
 expectedLines =
-  Line Start (parseLogTime "Jan  5 07:17:01") (Job "CRON" 17399) :
-  Line End   (parseLogTime "Jan  5 07:17:01") (Job "CRON" 17398) :
-  Line Start (parseLogTime "Jan  5 07:17:04") (Job "interesting" 17397) :
-  Line Start (parseLogTime "Jan  5 07:20:01") (Job "CRON" 17417) :
-  Line End   (parseLogTime "Jan  5 07:20:02") (Job "CRON" 17416) :
-  Line End   (parseLogTime "Jan  5 07:30:50") (Job "interesting" 17396) :
+  Line Start (parseLogTime "Jan  5 07:17:01") (Job "foo bar" 17399) :
+  Line End   (parseLogTime "Jan  5 07:17:01") (Job "foo bar" 17398) :
+  Line Start (parseLogTime "Jan  5 07:17:04") (Job "huhu" 17397) :
+  Line Start (parseLogTime "Jan  5 07:20:01") (Job "test bumm" 17417) :
+  Line End   (parseLogTime "Jan  5 07:20:02") (Job "test bumm" 17416) :
+  Line End   (parseLogTime "Jan  5 07:30:50") (Job "huhu" 17396) :
   []
 
 logLines :: String
 logLines = unindent [i|
-  Jan  5 07:17:01 ip-111-22-3-44 CRON[17399]: info: (root) CMD (   cd / && run-parts --report /etc/cron.hourly)
-  Jan  5 07:17:01 ip-111-22-3-44 CRON[17398]: info: (root) END (   cd / && run-parts --report /etc/cron.hourly)
-  Jan  5 07:17:04 ip-111-22-3-44 interesting[17397]: info: (root) CMD (   cd / && run-parts --report /etc/cron.hourly)
+  Jan  5 07:17:01 ip-111-22-3-44 CRON[17399]: info: (root) CMD foo bar
+  Jan  5 07:17:01 ip-111-22-3-44 CRON[17398]: info: (root) END foo bar
+  Jan  5 07:17:04 ip-111-22-3-44 CRON[17397]: info: (root) CMD huhu
   Jan  5 07:18:06 ip-111-22-3-44 dhclient: info: DHCPREQUEST of [snip]
   Jan  5 07:18:06 ip-111-22-3-44 dhclient: info: DHCPACK of [snip]
   Jan  5 07:18:06 ip-111-22-3-44 dhclient: info: bound to [snip]
-  Jan  5 07:20:01 ip-111-22-3-44 CRON[17417]: info: (smmsp) CMD (test -x /etc/init.d/sendmail && /usr/share/sendmail/sendmail cron-msp)
-  Jan  5 07:20:02 ip-111-22-3-44 CRON[17416]: info: (smmsp) END (test -x /etc/init.d/sendmail && /usr/share/sendmail/sendmail cron-msp)
+  Jan  5 07:20:01 ip-111-22-3-44 CRON[17417]: info: (smmsp) CMD test bumm
+  Jan  5 07:20:02 ip-111-22-3-44 CRON[17416]: info: (smmsp) END test bumm
   Jan  5 07:30:24 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MTA-v4: load average: 12
   Jan  5 07:30:24 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MSP-v4: load average: 12
   Jan  5 07:30:39 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MTA-v4: load average: 16
   Jan  5 07:30:39 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MSP-v4: load average: 16
-  Jan  5 07:30:50 ip-111-22-3-44 interesting[17396]: info: (root) END (   cd / && run-parts --report /etc/cron.hourly)
+  Jan  5 07:30:50 ip-111-22-3-44 CRON[17396]: info: (root) END huhu
   Jan  5 07:30:54 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MTA-v4: load average: 19
   Jan  5 07:30:54 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MSP-v4: load average: 19
   Jan  5 07:31:09 ip-111-22-3-44 sm-mta[8739]: notice: rejecting connections on daemon MTA-v4: load average: 21
