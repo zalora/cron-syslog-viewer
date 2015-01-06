@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes, ScopedTypeVariables, ViewPatterns #-}
 
 module Gnuplot where
 
@@ -19,9 +19,9 @@ ytics runs = intercalate ", " $ for runs $
 
 objects :: [(Integer, Run)] -> String
 objects runs = unlines $ for runs $
- \ (ix, Run (start, end) _name) ->
+ \ (fromIntegral -> (ix :: Double), Run (start, end) _name) ->
     -- set object 1 rectangle from "2015-01-05_00:00:00", 2.6 to "2015-01-05_04:03:00", 3.4 fillcolor rgb "#8888ff" fillstyle solid 0.8
-    [i|set object #{show ix} rectangle from #{showTime start}, #{ix - 1} to #{showTime end}, #{ix} fillcolor rgb "#8888ff" fillstyle solid 0.8|]
+    [i|set object #{show ix} rectangle from #{showTime start}, #{ix - 0.5} to #{showTime end}, #{ix + 0.5} fillcolor rgb "#8888ff" fillstyle solid 0.8|]
 
 showTime :: UTCTime -> String
 showTime = formatTime defaultTimeLocale "\"%Y-%m-%d_%H:%M:%S\""

@@ -86,7 +86,7 @@ printGnuplot (zip [1 :: Integer ..] -> runs) = unindent [i|
   set timefmt "%Y-%m-%d_%H:%M:%S"
 
   set xrange [#{showTime (minimum (for runs (\ (_, Run (start, _) _) -> start)))}:#{showTime (maximum (for runs (\ (_, Run (_, end) _) -> end)))}]
-  set yrange [1:#{maximum (for runs (\ (ix, _) -> ix))}]
+  set yrange [0.4:#{fromIntegral (maximum (for runs (\ (ix, _) -> ix))) + 0.6 :: Double}]
   set xlabel "time"
   set ylabel ""
   set title "cron job times"
