@@ -40,7 +40,7 @@ parseLines :: String -> [Line]
 parseLines = catMaybes . map parseLine . lines
 
 parseLine :: String -> Maybe Line
-parseLine (words -> (month : day : time : host : job : _logLevel : _ : cronMarker : command)) = do
+parseLine (words -> (_pri : month : day : time : host : job : _logLevel : _ : cronMarker : command)) = do
   marker <- case cronMarker of
     "CMD" -> Just Start
     "END" -> Just End
